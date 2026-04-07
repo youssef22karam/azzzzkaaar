@@ -360,7 +360,6 @@ private fun HomeContent(
                 when {
                     currentScroll <= 8 -> viewModel.setBannerCollapsed(false)
                     delta > 18 -> viewModel.setBannerCollapsed(true)
-                    delta < -18 -> viewModel.setBannerCollapsed(false)
                 }
 
                 if (delta > 2 || delta < -2) {
@@ -495,75 +494,113 @@ private fun PrayerBanner(
             ),
         ) {
             Column {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp, bottom = 1.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
+                if (uiState.bannerCollapsed) {
                     Box(
                         modifier = Modifier
-                            .width(24.dp)
-                            .height(2.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(Color.White.copy(alpha = if (uiState.bannerCollapsed) 0.3f else 0.15f)),
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onToggle)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "المتبقي للصلاة القادمة",
-                            color = ForestLight.copy(alpha = 0.7f),
-                            fontSize = 7.sp,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Row(verticalAlignment = Alignment.Bottom) {
+                            .fillMaxWidth()
+                            .clickable(onClick = onToggle)
+                            .padding(horizontal = 14.dp, vertical = 9.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(1.dp),
+                        ) {
+                            Text(
+                                text = "المتبقي للصلاة القادمة",
+                                color = ForestLight.copy(alpha = 0.78f),
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.SemiBold,
+                            )
                             Text(
                                 text = formatCountdown(summary.countdownMillis),
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 19.sp,
-                                    letterSpacing = 1.2.sp,
+                                    fontSize = 20.sp,
+                                    letterSpacing = 1.1.sp,
                                     color = Color.White,
                                 ),
                             )
-                            Spacer(Modifier.width(6.dp))
-                            Row(modifier = Modifier.padding(bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text("←", color = Color.White.copy(alpha = 0.55f), fontSize = 9.sp)
-                                Spacer(Modifier.width(3.dp))
-                                Text(
-                                    summary.nextPrayer.displayName(),
-                                    color = ForestLight,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 8.sp,
-                                )
-                            }
+                            Text(
+                                text = summary.nextPrayer.displayName(),
+                                color = Color(0xFFC5F4D8),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
                         }
                     }
-                    PrayerDotsRow(uiState.prayerDots)
-                    Spacer(Modifier.width(8.dp))
+                } else {
                     Box(
                         modifier = Modifier
-                            .size(22.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.10f)),
+                            .fillMaxWidth()
+                            .padding(top = 4.dp, bottom = 1.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(
-                            Icons.Rounded.KeyboardArrowUp,
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.4f),
+                        Box(
                             modifier = Modifier
-                                .size(13.dp)
-                                .rotate(if (uiState.bannerCollapsed) 180f else 0f),
+                                .width(22.dp)
+                                .height(2.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(Color.White.copy(alpha = 0.12f)),
                         )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onToggle)
+                            .padding(horizontal = 11.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "المتبقي للصلاة القادمة",
+                                color = ForestLight.copy(alpha = 0.7f),
+                                fontSize = 7.sp,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(
+                                    text = formatCountdown(summary.countdownMillis),
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        letterSpacing = 1.sp,
+                                        color = Color.White,
+                                    ),
+                                )
+                                Spacer(Modifier.width(5.dp))
+                                Row(
+                                    modifier = Modifier.padding(bottom = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text("←", color = Color.White.copy(alpha = 0.55f), fontSize = 8.sp)
+                                    Spacer(Modifier.width(2.dp))
+                                    Text(
+                                        summary.nextPrayer.displayName(),
+                                        color = ForestLight,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 8.sp,
+                                    )
+                                }
+                            }
+                        }
+                        PrayerDotsRow(uiState.prayerDots)
+                        Spacer(Modifier.width(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.10f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.KeyboardArrowUp,
+                                contentDescription = null,
+                                tint = Color.White.copy(alpha = 0.4f),
+                                modifier = Modifier.size(12.dp),
+                            )
+                        }
                     }
                 }
 
@@ -571,8 +608,8 @@ private fun PrayerBanner(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         SunnahStrip(summary.sunnahInfo)
                         PrayerGrid(uiState.prayerDots)
@@ -1075,7 +1112,7 @@ private fun CountBubble(
 ) {
     val progress = if (total <= 0) 1f else 1f - (remaining.toFloat() / total.toFloat())
     val complete = remaining == 0
-    val shape = RoundedCornerShape(22.dp)
+    val shape = RoundedCornerShape(18.dp)
     Surface(
         shape = shape,
         color = Color.Transparent,
@@ -1099,13 +1136,13 @@ private fun CountBubble(
                     color = if (complete) Forest else Color(0x29065F46),
                     shape = shape,
                 )
-                .padding(horizontal = 16.dp, vertical = 13.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = if (complete) "اكتمل الذكر" else "اضغط للعد",
-                fontSize = 12.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = if (complete) Color.White.copy(alpha = 0.86f) else ForestMid,
             )
@@ -1113,7 +1150,7 @@ private fun CountBubble(
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = if (complete) "تم" else remaining.toString(),
-                    fontSize = 26.sp,
+                    fontSize = 21.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = if (complete) Color.White else ForestDark,
                 )
@@ -1121,10 +1158,10 @@ private fun CountBubble(
                     Spacer(Modifier.width(6.dp))
                     Text(
                         text = "/$total",
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (complete) Color.White.copy(alpha = 0.72f) else Color(0xFF7F8F89),
-                        modifier = Modifier.padding(bottom = 3.dp),
+                        modifier = Modifier.padding(bottom = 2.dp),
                     )
                 }
             }
@@ -1132,14 +1169,14 @@ private fun CountBubble(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(7.dp)
+                    .height(4.dp)
                     .clip(RoundedCornerShape(999.dp))
                     .background(if (complete) Color.White.copy(alpha = 0.18f) else Color.White),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(progress)
-                        .height(7.dp)
+                        .height(4.dp)
                         .background(
                             if (complete) {
                                 Brush.horizontalGradient(listOf(GoldLight, GoldLight))
