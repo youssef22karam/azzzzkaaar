@@ -61,6 +61,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -74,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.text.withStyle
 
 @Composable
 fun FaithfulQuranDialog(
@@ -361,7 +363,7 @@ private fun QuranReaderView(
         BoxWithConstraints(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = 6.dp, vertical = 4.dp),
         ) {
             QuranMushafPage(
                 quran = quran,
@@ -390,32 +392,23 @@ private fun QuranMushafPage(
         val textMeasurer = rememberTextMeasurer()
         val density = LocalDensity.current
 
-        val compactHeightFactor = when {
-            maxHeight < 540.dp -> 0.75f
-            maxHeight < 620.dp -> 0.84f
-            else -> 1f
-        }
         val baseFontScale = when {
-            charCount > 1500 -> 14.4f
-            charCount > 1300 -> 15.7f
-            charCount > 1100 -> 17.1f
-            charCount > 900 -> 18.5f
-            else -> 20.2f
-        } * compactHeightFactor
-        val baseLineScale = when {
-            charCount > 1450 -> 1.58f
-            charCount > 1250 -> 1.64f
-            charCount > 1050 -> 1.72f
-            else -> 1.82f
+            charCount > 1500 -> 17.8f
+            charCount > 1300 -> 18.8f
+            charCount > 1100 -> 19.8f
+            charCount > 900 -> 21f
+            else -> 22.4f
         }
-        val pageAspectRatio = 0.71f
-        val pageWidth = minOf(maxWidth, maxHeight * pageAspectRatio)
-        val pageHeight = minOf(maxHeight, pageWidth / pageAspectRatio)
-        val horizontalPagePadding = if (pageWidth < 320.dp) 12.dp else 16.dp
-        val verticalPagePadding = if (pageHeight < 520.dp) 10.dp else 14.dp
-        val pageHeaderFootprint = if (pageHeight < 520.dp) 54.dp else 62.dp
-        val textWidthPx = with(density) { (pageWidth - (horizontalPagePadding * 2)).roundToPx().coerceAtLeast(1) }
-        val textHeightPx = with(density) { (pageHeight - pageHeaderFootprint).roundToPx().coerceAtLeast(1) }
+        val baseLineScale = when {
+            charCount > 1450 -> 1.84f
+            charCount > 1250 -> 1.9f
+            charCount > 1050 -> 1.98f
+            else -> 2.06f
+        }
+        val horizontalPagePadding = if (maxWidth < 320.dp) 8.dp else 10.dp
+        val verticalPagePadding = if (maxHeight < 520.dp) 4.dp else 6.dp
+        val textWidthPx = with(density) { (maxWidth - (horizontalPagePadding * 2)).roundToPx().coerceAtLeast(1) }
+        val textHeightPx = with(density) { (maxHeight - (verticalPagePadding * 2)).roundToPx().coerceAtLeast(1) }
         val pageTextStyle = remember(quran.currentPage, textWidthPx, textHeightPx, charCount) {
             resolveMushafPageTextStyle(
                 textMeasurer = textMeasurer,
@@ -427,62 +420,16 @@ private fun QuranMushafPage(
             )
         }
 
-        val pageShape = RoundedCornerShape(24.dp)
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = horizontalPagePadding, vertical = verticalPagePadding),
         ) {
-            Surface(
-                modifier = Modifier
-                    .width(pageWidth)
-                    .height(pageHeight)
-                    .clip(pageShape)
-                    .border(1.dp, Color(0x33C7B28B), pageShape),
-                shape = pageShape,
-                color = Color.Transparent,
-                shadowElevation = 8.dp,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color(0xFFF8F1DF), Color(0xFFF3E8D1), Color(0xFFEADCC0)),
-                            ),
-                        )
-                        .padding(horizontal = horizontalPagePadding, vertical = verticalPagePadding),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            "الجزء ${quran.firstJuzOnPage ?: ""}",
-                            color = Color(0xFF8B6B32).copy(alpha = 0.85f),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium,
-                        )
-                        Text(
-                            "صفحة ${quran.currentPage}",
-                            color = Color(0xFF8B6B32).copy(alpha = 0.85f),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium,
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 8.dp),
-                    ) {
-                        Text(
-                            text = pageText,
-                            modifier = Modifier.fillMaxSize(),
-                            style = pageTextStyle,
-                        )
-                    }
-                }
-            }
+            Text(
+                text = pageText,
+                modifier = Modifier.fillMaxSize(),
+                style = pageTextStyle,
+            )
         }
     }
 }
@@ -494,25 +441,35 @@ private fun buildQuranPageAnnotatedText(quran: QuranUiState): AnnotatedString {
                 if (groupIndex > 0) {
                     append("\n\n")
                 }
-                pushStyle(
-                    SpanStyle(
-                        color = Color(0xFF8B6B32),
-                        fontWeight = FontWeight.Bold,
-                    ),
-                )
-                append("سورة ${group.surahName}\n")
-                pop()
-
-                group.basmalaText?.let {
+                withStyle(ParagraphStyle(textAlign = TextAlign.Center)) {
                     pushStyle(
                         SpanStyle(
-                            color = Color(0xFF936F2E),
-                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFFD4A853),
+                            fontWeight = FontWeight.Bold,
+                            shadow = Shadow(
+                                color = GoldBright.copy(alpha = 0.22f),
+                                offset = Offset.Zero,
+                                blurRadius = 10f,
+                            ),
                         ),
                     )
-                    append(it)
-                    append("\n")
+                    append("سورة ${group.surahName}")
                     pop()
+                    append("\n")
+                }
+
+                group.basmalaText?.let {
+                    withStyle(ParagraphStyle(textAlign = TextAlign.Center)) {
+                        pushStyle(
+                            SpanStyle(
+                                color = GoldBright.copy(alpha = 0.65f),
+                                fontWeight = FontWeight.Medium,
+                            ),
+                        )
+                        append(it)
+                        pop()
+                        append("\n")
+                    }
                 }
             } else if (groupIndex > 0) {
                 append("\n")
@@ -524,13 +481,13 @@ private fun buildQuranPageAnnotatedText(quran: QuranUiState): AnnotatedString {
 
                 pushStyle(
                     SpanStyle(
-                        color = if (isHighlighted) GoldBright else Color(0xFF2E2417),
+                        color = if (isHighlighted) Color(0xFFF5D48A) else Color(0xFFC8A24A),
                         fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal,
                         shadow = if (isHighlighted) {
                             Shadow(
-                                color = GoldBright.copy(alpha = 0.9f),
+                                color = GoldBright.copy(alpha = 0.95f),
                                 offset = Offset.Zero,
-                                blurRadius = 20f,
+                                blurRadius = 18f,
                             )
                         } else {
                             null
@@ -544,16 +501,16 @@ private fun buildQuranPageAnnotatedText(quran: QuranUiState): AnnotatedString {
                 pushStyle(
                     SpanStyle(
                         color = if (isHighlighted) {
-                            GoldBright.copy(alpha = 0.95f)
+                            Color(0xFFF5D48A)
                         } else {
-                            Color(0xFF8B6B32).copy(alpha = 0.9f)
+                            GoldBright.copy(alpha = 0.38f)
                         },
                         baselineShift = BaselineShift.Superscript,
                         shadow = if (isHighlighted) {
                             Shadow(
-                                color = GoldBright.copy(alpha = 0.7f),
+                                color = GoldBright.copy(alpha = 0.72f),
                                 offset = Offset.Zero,
-                                blurRadius = 10f,
+                                blurRadius = 12f,
                             )
                         } else {
                             null
@@ -1039,7 +996,7 @@ private fun resolveMushafPageTextStyle(
     var currentLineScale = baseLineScale
     var currentStyle = mushafPageTextStyle(currentFontSize, currentLineScale)
 
-    while (currentFontSize > 10.6f) {
+    while (currentFontSize > 10.2f) {
         val layoutResult = textMeasurer.measure(
             text = pageText,
             style = currentStyle,
@@ -1049,8 +1006,8 @@ private fun resolveMushafPageTextStyle(
             return currentStyle
         }
 
-        currentFontSize -= 0.35f
-        currentLineScale = (currentLineScale - 0.02f).coerceAtLeast(1.42f)
+        currentFontSize -= 0.3f
+        currentLineScale = (currentLineScale - 0.03f).coerceAtLeast(1.56f)
         currentStyle = mushafPageTextStyle(currentFontSize, currentLineScale)
     }
 
@@ -1064,8 +1021,13 @@ private fun mushafPageTextStyle(
     fontFamily = AmiriFamily,
     fontSize = fontSize.sp,
     lineHeight = (fontSize * lineScale).sp,
-    color = Color(0xFF2E2417),
+    color = Color(0xFFC8A24A),
     textAlign = TextAlign.Justify,
+    shadow = Shadow(
+        color = GoldBright.copy(alpha = 0.08f),
+        offset = Offset.Zero,
+        blurRadius = 3f,
+    ),
 )
 
 @Composable
